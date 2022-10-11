@@ -18,3 +18,5 @@ didalah file http_protocol.java terdapat metode sebagai berikut
   menampilkan content Type dari data yang dikirimkan atau diterima
 - getFilePath()
   menentukan path dari file atau data yang diminta browser
+- getMethod()
+  menampilkan data ke browser berdasarkan metode "GET", "POST", "PUT", "DELETE"
