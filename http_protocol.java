@@ -69,8 +69,9 @@ public class http_protocol {
             String accessLog = String.format("Client %s, Method %s, path %s, version %s, host %s , header %s", this.client.toString(), method, path, version, host, headers.toString());
             System.out.println(accessLog);
             */
+            //test 1 methode
+            String requestBody = "";
             if (method.equals("GET")){
-                String parameter_query_string = "";
                 CharSequence qry_string ="?";
                 Boolean ketemu =path.contains(qry_string);
                 if(ketemu == true){
@@ -78,62 +79,22 @@ public class http_protocol {
                     parse_path = path.split("\\?");
                     path = parse_path[0].toString();
                     if (parse_path.length > 1){
-                        parameter_query_string = " --"+parse_path[1].toString().replace("&", " --");
+                        requestBody = " --"+parse_path[1].toString().replace("&", " --");
                     }
-                }
-    
-                Path filePath = getFilePath(path);
-                if (Files.exists(filePath)){
-                    //
-                    String contentType = guessContentType(filePath);
-                    String extension = filePath.toString().toLowerCase();
-    
-                    if (extension.endsWith(".php")){
-                        byte[] script_php = callPHP(filePath.toString().toLowerCase(), "GET", parameter_query_string);
-                        if (script_php.length > 0){
-                            handleResponse(version, "200 OK", "text/html", script_php); 
-                        } else {
-                            byte[] error_php = "<h1> Internal server error </h1>".getBytes();
-                            handleResponse(version, "500 internal server error", "text/html", error_php);
-                        }
-                    } else {
-                        handleResponse(version, "200 OK", contentType, Files.readAllBytes(filePath));
-                    }
-                } else {
-                    byte[] notFoundContent = "<h1>Not found :(</h1>".getBytes();
-                    handleResponse(version, "404 Not Found", "text/html", notFoundContent);
                 }
             } else {
                 if (method.equals("POST")){
-                    Path filePath = getFilePath(path);
-                    if (Files.exists(filePath)){
-                        //
-                        String contentType = guessContentType(filePath);
-                        String extension = filePath.toString().toLowerCase();
-                        String query_string =" --"+ requestsLines[requestsLines.length -1].toString().replace("&", " --");
-                        if (extension.endsWith(".php")){
-                            byte[] script_php = callPHP(filePath.toString().toLowerCase(), "POST", query_string);
-                            if (script_php.length > 0){
-                                handleResponse(version, "200 OK", "text/html", script_php); 
-                            } else {
-                                byte[] error_php = "<h1> Internal server error </h1>".getBytes();
-                                handleResponse(version, "500 internal server error", "text/html", error_php);
-                            }
-                        } else {
-                            handleResponse(version, "200 OK", contentType, Files.readAllBytes(filePath));
-                        }
-                    } else {
-                        byte[] notFoundContent = "<h1>Not found :(</h1>".getBytes();
-                        handleResponse(version, "404 Not Found", "text/html", notFoundContent);
-                    }       
+                    requestBody =" --"+ requestsLines[requestsLines.length -1].toString().replace("&", " --");
+                          
                 }
             }
+
+            getMethod(version, method, path, requestBody);
         
         } catch (IOException e) {
             System.out.println("Error gaes");
             e.printStackTrace();
         }
-
 
     }
     private byte[] callPHP(String filePath, String method, String params) {
@@ -185,6 +146,35 @@ public class http_protocol {
         }
         String folder = "D:\\Java_algoritma\\Web_Server_part_2\\htdocs";
         return Paths.get(folder, path);
+    }
+
+    private void getMethod(String version, String method, String path, String requestBody) throws IOException{
+        try {
+            
+            Path filePath = getFilePath(path);
+            if (Files.exists(filePath)){
+                        //
+                String contentType = guessContentType(filePath);
+                String extension = filePath.toString().toLowerCase();
+    
+                if (extension.endsWith(".php")){
+                    byte[] script_php = callPHP(filePath.toString().toLowerCase(), method, requestBody);
+                    if (script_php.length > 0){
+                        handleResponse(version, "200 OK", "text/html", script_php); 
+                    } else {
+                        byte[] error_php = "<h1> Internal server error </h1>".getBytes();
+                        handleResponse(version, "500 internal server error", "text/html", error_php);
+                    }
+                        } else {
+                            handleResponse(version, "200 OK", contentType, Files.readAllBytes(filePath));
+                        }
+            } else {
+                byte[] notFoundContent = "<h1>Not found :(</h1>".getBytes();
+                handleResponse(version, "404 Not Found", "text/html", notFoundContent);
+            } 
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
     }
     
 }
